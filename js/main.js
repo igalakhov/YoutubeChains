@@ -1,3 +1,6 @@
+//globals (kinda like settings)
+var replaceChars = ["-", "_", "+", "$", "–"] //these characters are removed from strings
+
 $( document ).ready(function() {
 
   var youtubeID = "K6XDyth0qxc"; //test youtube ID
@@ -9,8 +12,38 @@ $( document ).ready(function() {
   rawXML = getXML(youtubeID);
 
   //at this point we will have an XML file of the subtitles under rawXML
-  
+
+  rawText = getRawText(rawXML);
+
 });
+//this is the fucntion that gets the raw text of the XML
+function getRawText(xmlFile){
+  outputString = "";
+
+  var texts = xmlFile.getElementsByTagName("text");
+
+  for(var i = 0; i < texts.length; i++){
+    curString = xmlFile.getElementsByTagName("text")[i].innerHTML;
+
+    outputString = outputString.concat(curString);
+
+    outputString += " ";
+  }
+
+  outputString = outputString.toLowerCase();
+
+  for(var i = 0; i < replaceChars.length; i++){
+    outputString = outputString.replaceAll(replaceChars[i], "");
+  }
+
+  outputString = outputString.replaceAll(".", " . ");
+  outputString = outputString.replaceAll(",", " . ");
+  outputString = outputString.replaceAll("?", " . ");
+  outputString = outputString.replaceAll("!", " . ");
+
+  return outputString;
+
+}
 //this fucntion gets the cc of a youtube video from id DON'T TOUCH THIS
 function getXML(id){
   var httpURL = "http://video.google.com/timedtext?lang=en&v=" + id;
@@ -34,3 +67,8 @@ function getXML(id){
 
   return xmlDoc;
 }
+//this function replaces all characters in a string
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
