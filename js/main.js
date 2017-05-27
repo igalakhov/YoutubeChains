@@ -1,12 +1,13 @@
 //globals (kinda like settings)
-var replaceChars = ["-", "_", "+", "$", "–"]; //these characters are removed from strings
+var replaceChars = ["-", "_", "+", "$", "–", "↵"]; //these characters are removed from strings
 var letterWeights = {}; //letter weights for parsing
 $(document).ready(function() {
 
-  var youtubeID = "K6XDyth0qxc"; //test youtube ID
+  var youtubeID = "va1ezTo2c0s"; //test youtube ID
 
   var rawXML; //raw XML of cc
   var rawText = ""; //raw, minimized text of cc
+  var textList = []; //list of all the words and simbols, unique
   var markovJson = {}; //jason with markov chains;
   var textStamps = {}; //json with words and their time
 
@@ -16,9 +17,20 @@ $(document).ready(function() {
 
   rawText = getRawText(rawXML);
 
+  //at this point we have the raw text
+
+  textList = makeWordList(rawText);
+
+  console.log(textList);
+
+
 });
 function makeWordList(wordString){
-  outputList = [];
+  wordString = wordString.split(" ");
+  wordString = wordString.filter( function( item, index, inputArray ) {
+    return inputArray.indexOf(item) == index;
+  });
+  return wordString;
 }
 //this function makes markov Json from String
 function makeMarkovJson(markovString){
@@ -40,6 +52,8 @@ function getRawText(xmlFile){
 
   outputString = outputString.toLowerCase();
 
+  outputString = unescape(outputString);
+
   for(var i = 0; i < replaceChars.length; i++){
     outputString = outputString.replaceAll(replaceChars[i], "");
   }
@@ -48,6 +62,8 @@ function getRawText(xmlFile){
   outputString = outputString.replaceAll(",", " . ");
   outputString = outputString.replaceAll("?", " . ");
   outputString = outputString.replaceAll("!", " . ");
+  outputString = outputString.replace(/ *\([^)]*\) */g, "");
+  outputString = outputString.replace(/(\r\n|\n|\r)/gm, " ");
 
   return outputString;
 
@@ -80,3 +96,11 @@ String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
 };
+//this function returns an array with only unique values
+function filterUnique(array){
+  var uniqueVals = [];
+  $.each(array, function(i, el){
+    if($.inArray(el, uniqueVals) === -1) uniqueVals.push(el);
+  });
+  return uniqueVals;
+}
