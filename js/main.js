@@ -1,13 +1,14 @@
 //globals (kinda like settings)
-var replaceChars = ["-", "_", "+", "$", "–"] //these characters are removed from strings
-
-$( document ).ready(function() {
+var replaceChars = ["-", "_", "+", "$", "–"]; //these characters are removed from strings
+var letterWeights = {}; //letter weights for parsing
+$(document).ready(function() {
 
   var youtubeID = "K6XDyth0qxc"; //test youtube ID
 
   var rawXML; //raw XML of cc
-  var rawText; //raw, minimized text of cc
-  var markovJson; //jason with markov chains;
+  var rawText = ""; //raw, minimized text of cc
+  var markovJson = {}; //jason with markov chains;
+  var textStamps = {}; //json with words and their time
 
   rawXML = getXML(youtubeID);
 
@@ -16,6 +17,13 @@ $( document ).ready(function() {
   rawText = getRawText(rawXML);
 
 });
+function makeWordList(wordString){
+  outputList = [];
+}
+//this function makes markov Json from String
+function makeMarkovJson(markovString){
+
+}
 //this is the fucntion that gets the raw text of the XML
 function getRawText(xmlFile){
   outputString = "";
