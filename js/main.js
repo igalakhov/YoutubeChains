@@ -1,9 +1,9 @@
 //globals (kinda like settings)
-var replaceChars = ["-", "_", "+", "$", "–", "↵"]; //these characters are removed from strings
+var replaceChars = ["-", "_", "+", "$", "–", ";"]; //these characters are removed from strings
 var letterWeights = {}; //letter weights for parsing
 $(document).ready(function() {
 
-  var youtubeID = "va1ezTo2c0s"; //test youtube ID
+  var youtubeID = "hg3umXU_qWc"; //test youtube ID
 
   var rawXML; //raw XML of cc
   var rawText = ""; //raw, minimized text of cc
@@ -21,20 +21,53 @@ $(document).ready(function() {
 
   textList = makeWordList(rawText);
 
-  console.log(textList);
+  //now we have a unique list of all the words
 
+  markovJson = makeMarkovJson(rawText, textList);
+
+  //we now have a functional markov Json
+
+  console.log((makeStringWithJson(markovJson, textList, 100).join(" ")));
 
 });
+//this makes a markov generated
+function makeStringWithJson(markovJson, textList, len){
+  var output = [];
+  var curIndex = 0;
+  for(var i = 0; i < len; i++){
+    output.push(curIndex);
+    var possiblities = markovJson[textList[curIndex]];
+    curIndex = possiblities[Math.floor(Math.random()*possiblities.length)];
+  }
+  for(var i = 0; i < output.length; i++){
+    output[i] = textList[output[i]];
+  }
+  return output;
+}
+//this makes a list of unique words
 function makeWordList(wordString){
   wordString = wordString.split(" ");
+
   wordString = wordString.filter( function( item, index, inputArray ) {
     return inputArray.indexOf(item) == index;
   });
   return wordString;
 }
 //this function makes markov Json from String
-function makeMarkovJson(markovString){
+function makeMarkovJson(markovString, textList){
+  var outputJson = {};
 
+  markovString = markovString.split(" ");
+
+  for(var i = 0; i < textList.length; i++){
+    outputJson[textList[i]] = [];
+  }
+
+  for(var i = 0; i < (markovString.length) - 1; i++){
+    var index = textList.indexOf(markovString[i+1]);
+    outputJson[markovString[i]].push(index);
+  }
+  return outputJson;
 }
 //this is the fucntion that gets the raw text of the XML
 function getRawText(xmlFile){
@@ -64,6 +97,7 @@ function getRawText(xmlFile){
   outputString = outputString.replaceAll("!", " . ");
   outputString = outputString.replace(/ *\([^)]*\) */g, "");
   outputString = outputString.replace(/(\r\n|\n|\r)/gm, " ");
+  outputString = outputString.replaceAll("&amp#39", " ");
 
   return outputString;
 
