@@ -1,9 +1,38 @@
 //globals (kinda like settings)
-var replaceChars = ["-", "_", "+", "$", "–", ";"]; //these characters are removed from strings
-var letterWeights = {}; //letter weights for parsing
+var replaceChars = ["-", "_", "+", "$", "–", ";", "&amp#39", "&ampquot"]; //these characters are removed from strings
+var letterWeights = {  //letter weights for parsing
+  "a": 1,
+  "b": 0,
+  "c": 0,
+  "d": 0,
+  "e": 1,
+  "f": 0,
+  "g": 0,
+  "h": 0,
+  "i": 1,
+  "j": 0,
+  "k": 0,
+  "l": 0,
+  "m": 0,
+  "n": 0,
+  "o": 1,
+  "p": 0,
+  "q": 0,
+  "r": 0,
+  "s": 0,
+  "t": 0,
+  "u": 1,
+  "v": 0,
+  "w": 0,
+  "x": 0,
+  "y": 1,
+  "z": 0,
+  " ": 1,
+  ".": 0
+};
 $(document).ready(function() {
 
-  var youtubeID = "hg3umXU_qWc"; //test youtube ID
+  var youtubeID = "XJGiS83eQLk"; //test youtube ID
 
   var rawXML; //raw XML of cc
   var rawText = ""; //raw, minimized text of cc
@@ -17,6 +46,7 @@ $(document).ready(function() {
 
   rawText = getRawText(rawXML);
 
+  console.log(rawXML);
   //at this point we have the raw text
 
   textList = makeWordList(rawText);
@@ -27,9 +57,81 @@ $(document).ready(function() {
 
   //we now have a functional markov Json
 
-  console.log((makeStringWithJson(markovJson, textList, 100).join(" ")));
+  textStamps = makeTimeStamps(rawXML, textList);
+
+  
 
 });
+//this makes a timestamp Json from XML
+function makeTimeStamps(xmlFile, textList){
+  var outputJson = {};
+
+  for(var i = 0; i < textList.length; i++){
+    outputJson[textList[i]] = [];
+  }
+
+  var texts = xmlFile.getElementsByTagName("text");
+
+
+  for(var i = 0; i < texts.length; i++){
+    var curString = xmlFile.getElementsByTagName("text")[i].innerHTML;
+
+    var sum = 0;
+
+    var stringValues = [];
+
+    //do stuff with string
+    curString = normalizeString(curString);
+
+    curString = curString.split("");
+
+    for(var j = 0; j < curString.length; j++){
+      curLetter = curString[j];
+      if(letterWeights[curLetter] !== undefined){
+        sum += letterWeights[curLetter];
+        stringValues[j] = letterWeights[curLetter];
+      }
+    }
+
+    //we now have the sum of the thing
+    var start = parseFloat(xmlFile.getElementsByTagName("text")[i].getAttribute("start"));
+    var duration = parseFloat(xmlFile.getElementsByTagName("text")[i].getAttribute("dur"));
+
+    var wordStartIndex = [0];
+    var wordEndIndex = []
+    for(var j = 0; j < curString.length - 1; j++){
+      if(curString[j] === " "){
+        wordStartIndex.push(j + 1);
+      }
+    }
+    for(var j = 0; j < curString.length; j++){
+      if(curString[j] === " "){
+        wordEndIndex.push(j - 1);
+      }
+    }
+    for(var j = 0; j < wordStartIndex.length; j++){
+      var output = [];
+
+      var valBefore = getSum(curString, 0, wordStartIndex[j]);
+      var timeBefore = start + (duration * (valBefore/sum));
+      output.push(timeBefore);
+
+      valNow = getSum(curString, wordStartIndex[j], wordEndIndex[j]);
+      timeNow = (duration * (valNow/sum));
+
+      output.push(timeNow);
+
+      word = "";
+      for(var k = wordStartIndex[j]; k < (wordEndIndex[j] + 1); k++){
+        word += curString[k];
+      }
+
+      outputJson[word].push(output);
+    }
+  }
+
+    return outputJson;
+}
 //this makes a markov generated
 function makeStringWithJson(markovJson, textList, len){
   var output = [];
@@ -44,6 +146,7 @@ function makeStringWithJson(markovJson, textList, len){
   }
   return output;
 }
+
 //this makes a list of unique words
 function makeWordList(wordString){
   wordString = wordString.split(" ");
@@ -97,7 +200,11 @@ function getRawText(xmlFile){
   outputString = outputString.replaceAll("!", " . ");
   outputString = outputString.replace(/ *\([^)]*\) */g, "");
   outputString = outputString.replace(/(\r\n|\n|\r)/gm, " ");
-  outputString = outputString.replaceAll("&amp#39", " ");
+  outputString.replace(/&apos;/g, "'")
+           .replace(/&quot;/g, '"')
+           .replace(/&gt;/g, '>')
+           .replace(/&lt;/g, '<')
+           .replace(/&amp;/g, '&');
 
   return outputString;
 
@@ -137,4 +244,35 @@ function filterUnique(array){
     if($.inArray(el, uniqueVals) === -1) uniqueVals.push(el);
   });
   return uniqueVals;
+}
+function normalizeString(outputStrung){
+  outputString = outputStrung.toLowerCase();
+
+  outputString = unescape(outputString);
+
+  for(var i = 0; i < replaceChars.length; i++){
+    outputString = outputString.replaceAll(replaceChars[i], "");
+  }
+
+  outputString = outputString.replaceAll(".", " . ");
+  outputString = outputString.replaceAll(",", " . ");
+  outputString = outputString.replaceAll("?", " . ");
+  outputString = outputString.replaceAll("!", " . ");
+  outputString = outputString.replace(/ *\([^)]*\) */g, "");
+  outputString = outputString.replace(/(\r\n|\n|\r)/gm, " ");
+  outputString = outputString.replace(/\s\s+/g, ' ');
+
+  return outputString;
+}
+
+//this function calculates sum of array at give values
+function getSum(arr, start, end){
+  var sum = 0;
+  for(var j = start; j < end + 1; j++){
+    var letter = arr[j];
+    if(letterWeights[letter] !== undefined){
+      sum += letterWeights[letter];
+    }
+  }
+  return sum;
 }
