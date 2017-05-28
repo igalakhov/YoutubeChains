@@ -1,6 +1,3 @@
-function buttonClick(){
-  alert("Hello");
-}
 //globals (kinda like settings)
 var replaceChars = ["-", "_", "+", "$", "–", ";", "&amp#39", "&ampquot"]; //these characters are removed from strings
 var len = 100; //how long the markov will be
