@@ -32,9 +32,19 @@ var letterWeights = {  //letter weights for parsing
   ".": 0
 };
 $(document).ready(function() {
-  var markovList = wholeMarkov("wYFv_atMmXU");
+  //var markovList = wholeMarkov("wYFv_atMmXU");
+  // Load the IFrame Player API code asynchronously.
+  var tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/player_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-  console.log(markovList);
+  var player;
+
+  function onYouTubeIframeAPIReady(){
+    alert("Hello");
+  }
+
 });
 function wholeMarkov(youtubeID){
   var rawXML; //raw XML of cc
@@ -166,7 +176,6 @@ function makeStringWithJson(markovJson, textList, len){
   }
   return output;
 }
-
 //this makes a list of unique words
 function makeWordList(wordString){
   wordString = wordString.split(" ");
