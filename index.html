@@ -1,19 +1,105 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src = "lib/jquery.js"> </script>
-    <script src = "js/main.js"> </script>
   </head>
   <body>
-    <!-- each page is a separate div -->
-
-     <input> ID </input>
-     <div id="ytplayer"></div>
-
-
-     <script>
-     </script>
+    <!-- youtube API? -->
+    <div id = "player"> </div>
     <!-- don't remove this thank you -->
     <div id = "handler"> </div>
+    <!-- scripts -->
+    <script src = "lib/jquery.js"> </script>
+    <script src = "js/main.js"> </script>
+    <script>
+
+    var tubeID = "H5QBeMOo43s";
+    var len = 200;
+
+    var markovList = wholeMarkov(tubeID, len);
+    console.log(markovList);
+    var tag = document.createElement("script");
+
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    function onYouTubeIframeAPIReady(){
+      player = new YT.Player('player', {
+        height: '390',
+        width: '640',
+        videoId: tubeID,
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+    function onPlayerReady(event){
+      player.setPlaybackQuality("small");
+
+      event.target.playVideo();
+
+      leng = event.target.getDuration();
+
+      numTimes = Math.floor(leng/26.5);
+
+      var mainEval = "function bufferVideo(){";
+      for(var i = 0; i < numTimes - 1; i++){
+        mainEval += "player.seekTo("+i*28+");"
+        mainEval += "setTimeout(function(){";
+      }
+      mainEval += "player.seekTo("+numTimes*28+"); doStuff();";
+      for(var i = 0; i < numTimes - 1; i++){
+        mainEval += "}, 3000);";
+      }
+      mainEval += "}"
+      console.log(mainEval);
+
+      while(player.getPlayerState() === 3){
+        console.log("buffering");
+      }
+      var startTexts = [];
+      var textDurs = [];
+
+      for(var i = 0; i < len; i++){
+        if(markovList[i] === undefined){
+          while(markovList[i] === undefined){
+            i++;
+          }
+        }
+        textStart = markovList[i][0];
+        textDur = markovList[i][1];
+
+        startTexts.push(textStart);
+        textDurs.push(textDur);
+      }
+      //some other modifications
+
+      evalStatement = "";
+      evalStatement += "function doStuff(){";
+      for(var i = 0; i < startTexts.length - 1; i ++){
+        evalStatement += "event.target.seekTo("+ startTexts[i] + ");";
+        //evalStatement += "while(player.getPlayerState() === 3 && i !== 0){event.target.seekTo("+ startTexts[i] + ")}";
+        evalStatement += "setTimeout(function(){";
+      }
+      evalStatement += "event.target.seekTo(" + startTexts[startTexts.length - 1] + ", true);";
+      for(var i = textDurs.length - 2; i > -1; i--){
+        evalStatement += "}," + textDurs[i]*1000 + 1000 + ");";
+      }
+      evalStatement += "}"
+      eval(evalStatement);
+      eval(mainEval);
+      bufferVideo();
+    }
+    function onPlayerStateChange(event){
+      if(event.data === YT.PlayerState.BUFFERING){
+        setTimeout(function(){player.playVideo();}, 1);
+      }
+    }
+    function stopVideo(){
+      player.stopVideo();
+    }
+    </script>
   </body>
 </html>

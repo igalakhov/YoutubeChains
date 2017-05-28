@@ -1,52 +1,40 @@
+
+
+
 //globals (kinda like settings)
 var replaceChars = ["-", "_", "+", "$", "–", ";", "&amp#39", "&ampquot"]; //these characters are removed from strings
 var len = 100; //how long the markov will be
 var letterWeights = {  //letter weights for parsing
   "a": 1,
-  "b": 0,
-  "c": 0,
-  "d": 0,
+  "b": 0.1,
+  "c": 0.2,
+  "d": 0.1,
   "e": 1,
-  "f": 0,
-  "g": 0,
-  "h": 0,
+  "f": 0.1,
+  "g": 0.1,
+  "h": 0.1,
   "i": 1,
-  "j": 0,
-  "k": 0,
-  "l": 0,
-  "m": 0,
-  "n": 0,
+  "j": 0.2,
+  "k": 0.1,
+  "l": 0.2,
+  "m": 0.3,
+  "n": 0.3,
   "o": 1,
-  "p": 0,
-  "q": 0,
-  "r": 0,
-  "s": 0,
-  "t": 0,
+  "p": 0.1,
+  "q": 0.1,
+  "r": 0.1,
+  "s": 0.2,
+  "t": 0.1,
   "u": 1,
-  "v": 0,
-  "w": 0,
-  "x": 0,
+  "v": 0.1,
+  "w": 0.1,
+  "x": 0.1,
   "y": 1,
-  "z": 0,
+  "z": 0.1,
   " ": 1,
   ".": 0
 };
-$(document).ready(function() {
-  //var markovList = wholeMarkov("wYFv_atMmXU");
-  // Load the IFrame Player API code asynchronously.
-  var tag = document.createElement('script');
-  tag.src = "https://www.youtube.com/player_api";
-  var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-  var player;
-
-  function onYouTubeIframeAPIReady(){
-    alert("Hello");
-  }
-
-});
-function wholeMarkov(youtubeID){
+function wholeMarkov(youtubeID, len){
   var rawXML; //raw XML of cc
   var rawText = ""; //raw, minimized text of cc
   var textList = []; //list of all the words and simbols, unique
@@ -304,4 +292,11 @@ function getSum(arr, start, end){
     }
   }
   return sum;
+}
+//delays for a certain amount of time
+function sleep(millis){
+    var date = new Date();
+    var curDate = null;
+    do { curDate = new Date(); }
+    while(curDate-date < millis);
 }
