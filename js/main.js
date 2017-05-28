@@ -1,5 +1,6 @@
 //globals (kinda like settings)
 var replaceChars = ["-", "_", "+", "$", "–", ";", "&amp#39", "&ampquot"]; //these characters are removed from strings
+var len = 100; //how long the markov will be
 var letterWeights = {  //letter weights for parsing
   "a": 1,
   "b": 0,
@@ -31,14 +32,17 @@ var letterWeights = {  //letter weights for parsing
   ".": 0
 };
 $(document).ready(function() {
+  var markovList = wholeMarkov("wYFv_atMmXU");
 
-  var youtubeID = "XJGiS83eQLk"; //test youtube ID
-
+  console.log(markovList);
+});
+function wholeMarkov(youtubeID){
   var rawXML; //raw XML of cc
   var rawText = ""; //raw, minimized text of cc
   var textList = []; //list of all the words and simbols, unique
   var markovJson = {}; //jason with markov chains;
   var textStamps = {}; //json with words and their time
+  var finalMarkov = []; //finall list of all the words and the times with have to jumped in the form [[start, duration], [start, duration]] etc...
 
   rawXML = getXML(youtubeID);
 
@@ -46,7 +50,6 @@ $(document).ready(function() {
 
   rawText = getRawText(rawXML);
 
-  console.log(rawXML);
   //at this point we have the raw text
 
   textList = makeWordList(rawText);
@@ -57,11 +60,28 @@ $(document).ready(function() {
 
   //we now have a functional markov Json
 
+  markovText = makeStringWithJson(markovJson, textList, len);
+
+  //we now have a markov text
+
   textStamps = makeTimeStamps(rawXML, textList);
 
-  
+  //we now have an array with all textstamps
 
-});
+  finalMarkov = makeFinalMarkov(textStamps, markovText);
+
+  return finalMarkov;
+}
+//this makes the final markov
+function makeFinalMarkov(textStamps, markovText){
+  var output = [];
+  for(var i = 0; i < markovText.length; i++){
+    var curWord = markovText[i];
+    var chooseArr = textStamps[curWord];
+    output.push(chooseArr[Math.floor(Math.random() * chooseArr.length)]);
+  }
+  return output;
+}
 //this makes a timestamp Json from XML
 function makeTimeStamps(xmlFile, textList){
   var outputJson = {};
